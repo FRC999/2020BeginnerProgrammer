@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.AnalogInput;
 
 import com.kauailabs.navx.frc.*;
 
@@ -48,6 +49,10 @@ public class Robot extends TimedRobot {
   private final Timer m_timer = new Timer();
 
   private AHRS navxSensors; 
+
+  private int firstUltrasonicSensorPort = 1;
+  private double ultrasonicInchesConversionFactor = 0.125;
+  private AnalogInput firstUltrasonicSensor = new AnalogInput(firstUltrasonicSensorPort);
   
   public Compressor compressor = new Compressor();
   public DoubleSolenoid doubleSolenoid = new DoubleSolenoid(4,5);
@@ -70,7 +75,7 @@ public class Robot extends TimedRobot {
     catch (final Exception exception) {
        System.out.print("Call security!!");
     }
-compressor.setClosedLoopControl(true);
+//compressor.setClosedLoopControl(true);
 
 
   }
@@ -80,6 +85,8 @@ compressor.setClosedLoopControl(true);
     SmartDashboard.putNumber("MagnetX", navxSensors.getRawMagX());
     SmartDashboard.putNumber("Left Encoder",driveLeftFrontTalon.getSelectedSensorPosition());
     SmartDashboard.putNumber("Joystick y",m_stick.getY());
+    double ultrasonicDistanceInches = firstUltrasonicSensor.getValue()*ultrasonicInchesConversionFactor;
+    SmartDashboard.putNumber("Ultrasonic Distance", ultrasonicDistanceInches);
     //SmartDashboard.putNumber("MagnetX", navxSensors.getRawMagX());  
   }
 
@@ -91,7 +98,7 @@ compressor.setClosedLoopControl(true);
     m_timer.reset();
     m_timer.start();
     driveLeftFrontTalon.setSelectedSensorPosition(0);
-    compressor.setClosedLoopControl(true);
+  //  compressor.setClosedLoopControl(true);
   }
 
   
@@ -118,7 +125,7 @@ compressor.setClosedLoopControl(true);
    */
   @Override
   public void teleopInit() {
-    compressor.setClosedLoopControl(true);
+//    compressor.setClosedLoopControl(true);
   }
 
   /**
@@ -127,14 +134,15 @@ compressor.setClosedLoopControl(true);
   @Override
   public void teleopPeriodic() {
     m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
-
+/*
     if (m_stick.getRawButton(solenoidForwardButton))
         doubleSolenoid.set(Value.kForward);
         if (m_stick.getRawButton(solenoidReverseButton))
         doubleSolenoid.set(Value.kReverse);
         if (m_stick.getRawButton(solenoidOffButton))
         doubleSolenoid.set(Value.kOff);
-  }
+*/
+      }
 
 
 
@@ -148,7 +156,7 @@ compressor.setClosedLoopControl(true);
   @Override
   public void disabledInit() {
     m_robotDrive.arcadeDrive(0,0);
-    compressor.setClosedLoopControl(false);
+//    compressor.setClosedLoopControl(false);
   }
 
 }
