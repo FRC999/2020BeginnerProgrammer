@@ -15,6 +15,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 //import edu.wpi.first.wpilibj.PWMVictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -38,6 +39,9 @@ public class Robot extends TimedRobot {
   private final WPI_TalonSRX driveLeftBackTalon = new WPI_TalonSRX(2);
   private final WPI_TalonSRX driveRightFrontTalon = new WPI_TalonSRX(3);
   private final WPI_TalonSRX driveRightBackTalon = new WPI_TalonSRX(4);
+
+  private final WPI_TalonFX exampleTalonFX1 = new WPI_TalonFX(30);
+  private final WPI_TalonFX exampleTalonFX2 = new WPI_TalonFX(31);
 
   SpeedControllerGroup leftGroup = new SpeedControllerGroup( driveLeftFrontTalon, driveLeftBackTalon);
   SpeedControllerGroup rightGroup = new SpeedControllerGroup( driveRightFrontTalon, driveRightBackTalon);
@@ -67,7 +71,11 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     driveLeftFrontTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+
+  exampleTalonFX1.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
     SmartDashboard.putNumber("Calum", 5);
+
+    exampleTalonFX2.follow(exampleTalonFX1);
   
     try {
       navxSensors = new AHRS(SPI.Port.kMXP);
@@ -84,6 +92,9 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     SmartDashboard.putNumber("MagnetX", navxSensors.getRawMagX());
     SmartDashboard.putNumber("Left Encoder",driveLeftFrontTalon.getSelectedSensorPosition());
+    SmartDashboard.putNumber("TalonFX 1 Encoder",exampleTalonFX1.getSelectedSensorPosition());
+    SmartDashboard.putNumber("TalonFX 2 Encoder",exampleTalonFX2.getSelectedSensorPosition());
+
     SmartDashboard.putNumber("Joystick y",m_stick.getY());
     double ultrasonicDistanceInches = firstUltrasonicSensor.getValue()*ultrasonicInchesConversionFactor;
     SmartDashboard.putNumber("Ultrasonic Distance", ultrasonicDistanceInches);
@@ -125,7 +136,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopInit() {
-//    compressor.setClosedLoopControl(true);
+    compressor.setClosedLoopControl(false);
   }
 
   /**
@@ -134,6 +145,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
+    exampleTalonFX1.set(m_stick.getZ());
 /*
     if (m_stick.getRawButton(solenoidForwardButton))
         doubleSolenoid.set(Value.kForward);
