@@ -5,7 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-// Testing sound 1
+// Testing sound
 
 package frc.robot;
 
@@ -29,6 +29,11 @@ import edu.wpi.first.wpilibj.AnalogInput;
 
 import com.kauailabs.navx.frc.*;
 
+// Music-specific
+import java.util.ArrayList;
+import com.ctre.phoenix.music.Orchestra;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the TimedRobot
@@ -42,8 +47,8 @@ public class Robot extends TimedRobot {
   private final WPI_TalonSRX driveRightFrontTalon = new WPI_TalonSRX(3);
   private final WPI_TalonSRX driveRightBackTalon = new WPI_TalonSRX(4);
 
-  private final WPI_TalonFX exampleTalonFX1 = new WPI_TalonFX(30);
-  private final WPI_TalonFX exampleTalonFX2 = new WPI_TalonFX(31);
+  //private final WPI_TalonFX exampleTalonFX1 = new WPI_TalonFX(30);
+  //private final WPI_TalonFX exampleTalonFX2 = new WPI_TalonFX(31);
 
   SpeedControllerGroup leftGroup = new SpeedControllerGroup( driveLeftFrontTalon, driveLeftBackTalon);
   SpeedControllerGroup rightGroup = new SpeedControllerGroup( driveRightFrontTalon, driveRightBackTalon);
@@ -66,6 +71,60 @@ public class Robot extends TimedRobot {
   public int solenoidForwardButton = 1;
   public int solenoidReverseButton = 2;
   public int solenoidOffButton = 3;
+
+
+  // Music-specific
+  Orchestra _orchestra;
+  TalonFX [] _fxes =  { new TalonFX(30), new TalonFX(31) };
+  String[] _songs = new String[] {
+    "song1.chrp",
+    "song2.chrp",
+    "song3.chrp",
+    "song4.chrp",
+    "song5.chrp",
+    "song6.chrp",
+    "song7.chrp",
+    "song8.chrp",
+    "song9.chrp", /* the remaining songs play better with three or more FXs */
+    "song10.chrp",
+    "song11.chrp",
+  };
+  int _songSelection = 0;
+  int _timeToPlayLoops = 0;
+  Joystick _joy;
+  int _lastButton = 0;
+  int _lastPOV = 0;
+  int getButton() {
+    for (int i = 1; i < 9; ++i) {
+        if (_joy.getRawButton(i)) {
+            return i;
+        }
+    }
+    return 0;
+  }
+  void LoadMusicSelection(int offset)
+    {
+        /* increment song selection */
+        _songSelection += offset;
+        /* wrap song index in case it exceeds boundary */
+        if (_songSelection >= _songs.length) {
+            _songSelection = 0;
+        }
+        if (_songSelection < 0) {
+            _songSelection = _songs.length - 1;
+        }
+        /* load the chirp file */
+        _orchestra.loadMusic(_songs[_songSelection]); 
+        /* print to console */
+        SmartDashboard.putString("Music", "Song selected is: " + _songs[_songSelection] + ".  Press left/right on d-pad to change.");
+        
+        /* schedule a play request, after a delay.  
+            This gives the Orchestra service time to parse chirp file.
+            If play() is called immedietely after, you may get an invalid action error code. */
+        _timeToPlayLoops = 10;
+    }
+    // end music-specific
+
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -74,10 +133,10 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     driveLeftFrontTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
 
-  exampleTalonFX1.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+  //exampleTalonFX1.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
     SmartDashboard.putNumber("Calum", 5);
 
-    exampleTalonFX2.follow(exampleTalonFX1);
+    //exampleTalonFX2.follow(exampleTalonFX1);
   
     try {
       navxSensors = new AHRS(SPI.Port.kMXP);
@@ -87,15 +146,21 @@ public class Robot extends TimedRobot {
     }
 //compressor.setClosedLoopControl(true);
 
+    // Music-specific
+    ArrayList<TalonFX> _instruments = new ArrayList<TalonFX>();
+    for (int i = 0; i < _fxes.length; ++i) {
+      _instruments.add   (_fxes[i]);
+    }
+    _orchestra = new Orchestra(_instruments);
+        _joy = new Joystick(0);
 
   }
-
   @Override
   public void robotPeriodic() {
     SmartDashboard.putNumber("MagnetX", navxSensors.getRawMagX());
     SmartDashboard.putNumber("Left Encoder",driveLeftFrontTalon.getSelectedSensorPosition());
-    SmartDashboard.putNumber("TalonFX 1 Encoder",exampleTalonFX1.getSelectedSensorPosition());
-    SmartDashboard.putNumber("TalonFX 2 Encoder",exampleTalonFX2.getSelectedSensorPosition());
+    //SmartDashboard.putNumber("TalonFX 1 Encoder",exampleTalonFX1.getSelectedSensorPosition());
+    //SmartDashboard.putNumber("TalonFX 2 Encoder",exampleTalonFX2.getSelectedSensorPosition());
 
     SmartDashboard.putNumber("Joystick y",m_stick.getY());
     double ultrasonicDistanceInches = firstUltrasonicSensor.getValue()*ultrasonicInchesConversionFactor;
@@ -139,6 +204,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     compressor.setClosedLoopControl(false);
+
+    // Music-specific
+    LoadMusicSelection(0);
+
   }
 
   /**
@@ -147,7 +216,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
-    exampleTalonFX1.set(m_stick.getZ());
+    // exampleTalonFX1.set(m_stick.getZ());
 /*
     if (m_stick.getRawButton(solenoidForwardButton))
         doubleSolenoid.set(Value.kForward);
@@ -156,7 +225,60 @@ public class Robot extends TimedRobot {
         if (m_stick.getRawButton(solenoidOffButton))
         doubleSolenoid.set(Value.kOff);
 */
+
+
+    // Music-specific
+
+    int btn = getButton();
+    int currentPOV = _joy.getPOV();
+    if (_timeToPlayLoops > 0) {
+      --_timeToPlayLoops;
+      if (_timeToPlayLoops == 0) {
+          /* scheduled play request */
+          System.out.println("Auto-playing song.");
+          _orchestra.play();
       }
+    }
+    if (_lastButton != btn) {
+      _lastButton = btn;
+      switch (btn) {
+          case 1: /* toggle play and paused */
+              if (_orchestra.isPlaying()) {
+                  _orchestra.pause();
+                  System.out.println("Song paused");
+              }  else {
+                  _orchestra.play();
+                  System.out.println("Playing song...");
+              }
+              break;
+              
+          case 2: /* toggle play and stop */
+              if (_orchestra.isPlaying()) {
+                  _orchestra.stop();
+                  System.out.println("Song stopped.");
+              }  else {
+                  _orchestra.play();
+                  System.out.println("Playing song...");
+              }
+              break;
+      }
+    }
+    if (_lastPOV != currentPOV) {
+      _lastPOV = currentPOV;
+
+      switch (currentPOV) {
+          case 90:
+              /* increment song selection */
+              LoadMusicSelection(+1);
+              break;
+          case 270:
+              /* decrement song selection */
+              LoadMusicSelection(-1);
+              break;
+      }
+    }
+
+  }
 
 
 
