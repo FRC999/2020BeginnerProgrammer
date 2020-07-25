@@ -261,22 +261,18 @@ public class Robot extends TimedRobot {
                   System.out.println("Playing song...");
               }
               break;
-      }
-    }
-    if (_lastPOV != currentPOV) {
-      _lastPOV = currentPOV;
-
-      switch (currentPOV) {
-          case 90:
+          case 5:
               /* increment song selection */
               LoadMusicSelection(+1);
               break;
-          case 270:
+          case 6:
               /* decrement song selection */
               LoadMusicSelection(-1);
               break;
-      }
+
+            }
     }
+
 
   }
 
