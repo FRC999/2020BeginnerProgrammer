@@ -65,6 +65,11 @@ public class Robot extends TimedRobot {
   public int solenoidForwardButton = 1;
   public int solenoidReverseButton = 2;
   public int solenoidOffButton = 3;
+
+  public int homeworkState = 0;
+  // 0 - drive normally
+  // 1 - button was pressed; ignore everything until special task is done
+
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -120,6 +125,10 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     // Drive for 2 seconds
+    // m_timer.get() < 2.0
+    //
+    // Change to check encoder settings instead
+    //
   if (driveLeftFrontTalon.getSelectedSensorPosition() <= 9000) {
       m_robotDrive.arcadeDrive(-0.5, 0.0); // drive forwards half speed
     } else {
@@ -145,8 +154,20 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
-    exampleTalonFX1.set(m_stick.getZ());
+
+    if ( this.homeworkState == 0 ) {
+      m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
+      exampleTalonFX1.set(m_stick.getZ());
+
+      if (m_stick.getRawButton(8)) {
+        this.homeworkState = 1;
+        this.homework1();
+      }
+    } else {
+      // special task
+      this.homework1();
+    }
+    
 /*
     if (m_stick.getRawButton(solenoidForwardButton))
         doubleSolenoid.set(Value.kForward);
@@ -155,8 +176,14 @@ public class Robot extends TimedRobot {
         if (m_stick.getRawButton(solenoidOffButton))
         doubleSolenoid.set(Value.kOff);
 */
-      }
+    }
 
+    public void homework1() {
+      // ....
+      /// turning code
+      this.homeworkState = 0; // eventually
+
+    }
 
 
   /**
