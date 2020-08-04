@@ -23,7 +23,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.networktables.*;
 
 import com.kauailabs.navx.frc.*;
 
@@ -51,7 +53,6 @@ public class Robot extends TimedRobot {
       = new DifferentialDrive( leftGroup,  rightGroup);
   private final Joystick m_stick = new Joystick(0);
   private final Timer m_timer = new Timer();
-
   private AHRS navxSensors; 
 
   private int firstUltrasonicSensorPort = 1;
@@ -68,6 +69,19 @@ public class Robot extends TimedRobot {
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
    */
+
+  NetworkTableInstance ntInst = NetworkTableInstance.getDefault();
+  
+  NetworkTable table = ntInst.getTable("Table_01");
+  NetworkTableEntry doubleEntry = table.getEntry("Double");
+  NetworkTableEntry stringEntry = table.getEntry("String");
+  NetworkTableEntry booleanEntry = table.getEntry("Boolean");
+
+  NetworkTable subTable = ntInst.getTable("Table_01/Table_02");
+  NetworkTableEntry intSubEntry = subTable.getEntry("Integer");
+  NetworkTableEntry stringSubEntry = subTable.getEntry("String");
+  NetworkTableEntry booleanSubEntry = subTable.getEntry("Boolean");
+
   @Override
   public void robotInit() {
     driveLeftFrontTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
@@ -85,8 +99,15 @@ public class Robot extends TimedRobot {
     }
 //compressor.setClosedLoopControl(true);
 
+ntInst.startClientTeam(999);
+stringEntry.setDefaultString("Hello World");
+booleanEntry.setDefaultBoolean(false);
 
-  }
+intSubEntry.setDefaultValue(1000);
+stringSubEntry.setDefaultString("Good Morning");
+booleanEntry.setDefaultBoolean(false);
+
+}
 
   @Override
   public void robotPeriodic() {
@@ -99,6 +120,9 @@ public class Robot extends TimedRobot {
     double ultrasonicDistanceInches = firstUltrasonicSensor.getValue()*ultrasonicInchesConversionFactor;
     SmartDashboard.putNumber("Ultrasonic Distance", ultrasonicDistanceInches);
     //SmartDashboard.putNumber("MagnetX", navxSensors.getRawMagX());  
+    doubleEntry.setDouble(m_stick.getX());
+    SmartDashboard.putNumber(doubleEntry.getName(), doubleEntry.getDouble(-2));
+    
   }
 
   /**
