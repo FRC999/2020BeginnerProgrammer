@@ -121,7 +121,9 @@ booleanEntry.setDefaultBoolean(false);
     SmartDashboard.putNumber("Ultrasonic Distance", ultrasonicDistanceInches);
     //SmartDashboard.putNumber("MagnetX", navxSensors.getRawMagX());  
     doubleEntry.setDouble(m_stick.getX());
-    SmartDashboard.putNumber(doubleEntry.getName(), doubleEntry.getDouble(-2));
+    SmartDashboard.putString("KeyName","#"+doubleEntry.getName()+"#");
+    SmartDashboard.putNumber(doubleEntry.getName().replace('/', '|'), doubleEntry.getDouble(-2));
+    //SmartDashboard.putNumber("NetworkTable1", doubleEntry.getDouble(-2));
     
   }
 
