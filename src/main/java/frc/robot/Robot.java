@@ -66,14 +66,26 @@ public class Robot extends TimedRobot {
   public int solenoidReverseButton = 2;
   public int solenoidOffButton = 3;
 
+  final static public int wheelDiameter = 4;  // wheel diameter, inches
+  final static public int clicksPerTurn = 4096;  // encoder clicks per turn; one turn = Pi*Diameter inches
+  final static public int distanceBetweenWheels = 32;  // Distance between left and right wheels, inches
+  
   public int homeworkState = 0;
   // 0 - drive normally
   // 1 - button was pressed; ignore everything until special task is done
+  public int homeworkStateStep = 0;
+  // 0 - turn
+  // 1 - drive forward
+  public int homeworkStateStepBegin = 0;
+  // 0 - did not start yet
+  // 1 - step started
+  public int homeworkEncoderStart;  // remembers the encoder value before starting to move
 
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
    */
+
   @Override
   public void robotInit() {
     driveLeftFrontTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
@@ -161,6 +173,7 @@ public class Robot extends TimedRobot {
 
       if (m_stick.getRawButton(8)) {
         this.homeworkState = 1;
+        this.homeworkStateStep = 0;
         this.homework1();
       }
     } else {
@@ -178,10 +191,43 @@ public class Robot extends TimedRobot {
 */
     }
 
+    public void homeworkTurn(int degrees) {     // turn the robot, degrees
+
+        double endTurnDistance;
+        endTurnDistance = ( Math.abs(degrees) /360)*Math.PI* distanceBetweenWheels ; //distance inches the robot needs to go to turn "degrees"
+        double totalClicks = (clicksPerTurn / wheelDiameter) * endTurnDistance ; // how many clicks I need to get through to complete the turn
+
+        if (homeworkStateStepBegin == 0) {
+          homeworkEncoderStart = driveLeftFrontTalon.getSelectedSensorPosition() ;
+          m_robotDrive.arcadeDrive( 0 , (degrees > 0)? 0.5 : -0.5 );
+          homeworkStateStepBegin = 1;
+        } else { // turing already; check encoder to see if I am done
+          if ( Math.abs( driveLeftFrontTalon.getSelectedSensorPosition() - homeworkEncoderStart) >= totalClicks ) // turn is done!!!
+          {
+            m_robotDrive.arcadeDrive( 0 , 0 ); //stop the robot!!
+            homeworkStateStep ++ ;  // go to the next step
+            homeworkStateStepBegin = 0;  // reset the Begit status back to 0; we did not start turning yet
+          } else {
+            m_robotDrive.arcadeDrive( 0 , (degrees > 0)? 0.5 : -0.5 );
+          }
+        }
+    }
+
+    public void homeworkGoForward(int distance) { // distance is in ft
+    }
+
     public void homework1() {
-      // ....
-      /// turning code
-      this.homeworkState = 0; // eventually
+      
+      switch (homeworkStateStep) {
+        case 0:
+          this.homeworkTurn(45);
+          break;
+        case 1:
+          this.homeworkGoForward(10);
+          break;
+      }
+
+      // this.homeworkState = 0; // eventually
 
     }
 
