@@ -229,7 +229,7 @@ public class Robot extends TimedRobot {
         homeworkStateStepBegin = 1;
       }
       else{
-        if (Math.abs(driveLeftFrontTalon.getSelectedSensorPosition() - homeworkEncoderStart) >= clicks)) {
+        if (Math.abs(driveLeftFrontTalon.getSelectedSensorPosition() - homeworkEncoderStart) >= clicks) {
            m_robotDrive.arcadeDrive(0, 0);
            homeworkStateStep = 0;
            homeworkStateStepBegin = 0;
