@@ -198,12 +198,15 @@ public class Robot extends TimedRobot {
 
         if (degrees == 0) { homeworkStateStep ++ ; return; } // no turn needed
 
-        double endTurnDistance = ( Math.abs(degrees) /360)*Math.PI* distanceBetweenWheels ; //distance inches the robot needs to go to turn "degrees"
+        double endTurnDistance = ( Math.abs(degrees) /360.0)*Math.PI* distanceBetweenWheels ; //distance inches the robot needs to go to turn "degrees"
         double totalClicks = (clicksPerTurn / wheelDiameter) * endTurnDistance ; // how many clicks I need to get through to complete the turn
+
+        SmartDashboard.putNumber("endTurnDistance", endTurnDistance);
+        SmartDashboard.putNumber("turnclicks", totalClicks);
 
         if (homeworkStateStepBegin == 0) {
           homeworkEncoderStart = driveLeftFrontTalon.getSelectedSensorPosition() ;
-          m_robotDrive.arcadeDrive( 0 , (degrees > 0)? 0.5 : -0.5 );
+          m_robotDrive.arcadeDrive( 0 , (degrees < 0)? 0.5 : -0.5 );
           homeworkStateStepBegin = 1;
         } else { // turing already; check encoder to see if I am done
           if ( Math.abs( driveLeftFrontTalon.getSelectedSensorPosition() - homeworkEncoderStart) >= totalClicks ) // turn is done!!!
@@ -212,7 +215,7 @@ public class Robot extends TimedRobot {
             homeworkStateStep ++ ;  // go to the next step
             homeworkStateStepBegin = 0;  // reset the Begit status back to 0; we did not start turning yet
           } else {
-            m_robotDrive.arcadeDrive( 0 , (degrees > 0)? 0.5 : -0.5 );
+            m_robotDrive.arcadeDrive( 0 , (degrees < 0)? 0.5 : -0.5 );
           }
         }
     }
@@ -225,18 +228,18 @@ public class Robot extends TimedRobot {
 
       if(this.homeworkStateStepBegin == 0) {
         homeworkEncoderStart = driveLeftFrontTalon.getSelectedSensorPosition();
-        m_robotDrive.arcadeDrive( (distance > 0)? 0.5 : -0.5 , 0);
+        m_robotDrive.arcadeDrive( (distance < 0)? 0.5 : -0.5 , 0);
         homeworkStateStepBegin = 1;
       }
       else{
-        if (Math.abs(driveLeftFrontTalon.getSelectedSensorPosition() - homeworkEncoderStart) >= clicks)) {
+        if (Math.abs(driveLeftFrontTalon.getSelectedSensorPosition() - homeworkEncoderStart) >= clicks) {
            m_robotDrive.arcadeDrive(0, 0);
            homeworkStateStep = 0;
            homeworkStateStepBegin = 0;
            homeworkState = 0;  // done with the homework
         }
         else {
-          m_robotDrive.arcadeDrive( (distance > 0)? 0.5 : -0.5 , 0);
+          m_robotDrive.arcadeDrive( (distance < 0)? 0.5 : -0.5 , 0);
         }
       }
 
