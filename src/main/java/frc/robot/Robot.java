@@ -36,13 +36,13 @@ import com.kauailabs.navx.frc.*;
  * directory.
  */
 public class Robot extends TimedRobot {
-  private final WPI_TalonSRX driveLeftFrontTalon = new WPI_TalonSRX(1);
-  private final WPI_TalonSRX driveLeftBackTalon = new WPI_TalonSRX(2);
-  private final WPI_TalonSRX driveRightFrontTalon = new WPI_TalonSRX(3);
-  private final WPI_TalonSRX driveRightBackTalon = new WPI_TalonSRX(4);
+  private final WPI_TalonSRX driveLeftFrontTalon = new WPI_TalonSRX(1);   // define motor controller
+  private final WPI_TalonSRX driveLeftBackTalon = new WPI_TalonSRX(2);    // define motor controller
+  private final WPI_TalonSRX driveRightFrontTalon = new WPI_TalonSRX(3);  // define motor controller
+  private final WPI_TalonSRX driveRightBackTalon = new WPI_TalonSRX(4);   // define motor controller
 
-  private final WPI_TalonFX exampleTalonFX1 = new WPI_TalonFX(30);
-  private final WPI_TalonFX exampleTalonFX2 = new WPI_TalonFX(31);
+  private final WPI_TalonFX exampleTalonFX1 = new WPI_TalonFX(30);        // define motor controller for Phoenix
+  private final WPI_TalonFX exampleTalonFX2 = new WPI_TalonFX(31);        // define motor controller for Phoenix
 
   SpeedControllerGroup leftGroup = new SpeedControllerGroup( driveLeftFrontTalon, driveLeftBackTalon);
   SpeedControllerGroup rightGroup = new SpeedControllerGroup( driveRightFrontTalon, driveRightBackTalon);
@@ -76,8 +76,11 @@ public class Robot extends TimedRobot {
   public int homeworkStateStep = 0;
   // 0 - turn
   // 1 - drive forward
+
+  public int[] homeworkStateDuration = { 2, 10 } ;  // maximum number of seconds allowed for each step
+
   public int homeworkStateStepBegin = 0;
-  // 0 - did not start yet
+  // 0 - did not start the step yet
   // 1 - step started
   public int homeworkEncoderStart;  // remembers the encoder value before starting to move
 
@@ -193,8 +196,9 @@ public class Robot extends TimedRobot {
 
     public void homeworkTurn(int degrees) {     // turn the robot, degrees
 
-        double endTurnDistance;
-        endTurnDistance = ( Math.abs(degrees) /360)*Math.PI* distanceBetweenWheels ; //distance inches the robot needs to go to turn "degrees"
+        if (degrees == 0) { homeworkStateStep ++ ; return; } // no turn needed
+
+        double endTurnDistance = ( Math.abs(degrees) /360)*Math.PI* distanceBetweenWheels ; //distance inches the robot needs to go to turn "degrees"
         double totalClicks = (clicksPerTurn / wheelDiameter) * endTurnDistance ; // how many clicks I need to get through to complete the turn
 
         if (homeworkStateStepBegin == 0) {
@@ -214,17 +218,57 @@ public class Robot extends TimedRobot {
     }
 
     public void homeworkGoForward(int distance) { // distance is in ft
+
+      if (distance == 0) { homeworkStateStep ++ ; return; } // no turn needed
+
+      double clicks = (clicksPerTurn/wheelDiameter) * distance * 12 ;
+
+      if(this.homeworkStateStepBegin == 0) {
+        homeworkEncoderStart = driveLeftFrontTalon.getSelectedSensorPosition();
+        m_robotDrive.arcadeDrive( (distance > 0)? 0.5 : -0.5 , 0);
+        homeworkStateStepBegin = 1;
+      }
+      else{
+        if (Math.abs(driveLeftFrontTalon.getSelectedSensorPosition() - homeworkEncoderStart) >= clicks)) {
+           m_robotDrive.arcadeDrive(0, 0);
+           homeworkStateStep = 0;
+           homeworkStateStepBegin = 0;
+           homeworkState = 0;  // done with the homework
+        }
+        else {
+          m_robotDrive.arcadeDrive( (distance > 0)? 0.5 : -0.5 , 0);
+        }
+      }
+
+    }
+
+    public boolean notExceededStepDuration ( int stepNumber ) {
+      if (m_timer.get() > homeworkStateDuration[stepNumber]) { return false;}
+      else { return true; }
     }
 
     public void homework1() {
       
-      switch (homeworkStateStep) {
-        case 0:
-          this.homeworkTurn(45);
-          break;
-        case 1:
-          this.homeworkGoForward(10);
-          break;
+      if (homeworkStateStepBegin == 0) {
+        m_timer.reset();
+        m_timer.start();
+      }
+
+
+      if ( notExceededStepDuration(homeworkStateStep) ) {
+        switch (homeworkStateStep) {
+          case 0:
+            this.homeworkTurn(45);
+            break;
+          case 1:
+            this.homeworkGoForward(10);
+            break;
+        }
+      } else {
+        // interrupt homework
+        homeworkStateStep = 0;
+        homeworkStateStepBegin = 0;
+        homeworkState = 0;  // done with the homework
       }
 
       // this.homeworkState = 0; // eventually
