@@ -245,7 +245,7 @@ public class Robot extends TimedRobot {
 
     }
 
-    public boolean notExceededStepDuration ( int stepNumber ) {
+    public boolean notExceededStepDuration ( int stepNumber ) {  // check if we exceed maximum allowed time per homework step
       if (m_timer.get() > homeworkStateDuration[stepNumber]) { return false;}
       else { return true; }
     }
